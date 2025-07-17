@@ -1,2 +1,3 @@
 # run.sh
-python3 ./src/main.py $@
+CWD=$(pwd)
+python3 "${CWD}/src/main.py" $@

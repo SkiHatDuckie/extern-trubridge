@@ -1,6 +1,8 @@
 """src/main.py"""
 
 import argparse
+import os
+
 import pandas as pd
 
 import cleaning
@@ -28,9 +30,17 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     df = cleaning.validate_column_types(df)
     return df
 
-ANXIETY_TRENDS_DATA_PATH = "data/raw/Indicators_of_Anxiety_or_Depression\
+CWD = os.getcwd()
+ANXIETY_TRENDS_DATA_PATH = CWD + "/data/raw/Indicators_of_Anxiety_or_Depression\
 _Based_on_Reported_Frequency_of_Symptoms_During_Last_7_Days.csv"
-CLEAN_ANXIETY_TRENDS_PATH = "data/clean/anxiety_trends.csv"
+CLEAN_ANXIETY_TRENDS_PATH = CWD + "/data/clean/anxiety_trends.csv"
+
+def save_clean_dataframe(df: pd.DataFrame) -> None:
+    """Saves `df` as a .csv."""
+    dest_path = CWD + "/data/clean"
+    if not os.path.exists(dest_path):
+        os.mkdir(dest_path)
+    df.to_csv(CLEAN_ANXIETY_TRENDS_PATH)
 
 if __name__ == "__main__":
     args = init_argument_parser().parse_args()
@@ -39,6 +49,6 @@ if __name__ == "__main__":
     if args.clean:
         clean_anxiety_trends = clean_dataset(anxiety_trends_dataframe)
         print("Saving data to", CLEAN_ANXIETY_TRENDS_PATH)
-        clean_anxiety_trends.to_csv(CLEAN_ANXIETY_TRENDS_PATH)
+        save_clean_dataframe(clean_anxiety_trends)
     else:
         pass  # Do data analysis here
