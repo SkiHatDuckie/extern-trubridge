@@ -18,13 +18,21 @@ def drop_duplicate_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Drops all duplicate rows from the dataframe."""
     return df.drop_duplicates()
 
+# def trim_extra_space(df: pd.DataFrame) -> pd.DataFrame:
+#     """Removes unnecessary quotes from all cells, and then trims away excess whitespace."""
+#     pass
+
+def match_series(pattern: str, series: pd.Series) -> bool:
+    """Returns `True` if all entries in the `series` match the `pattern`, or are -1."""
+    return series.str.match(pattern).all()
+
 def validate_column_types(df: pd.DataFrame) -> pd.DataFrame:
     """Replaces each column with the expected type."""
-    string_columns = ("Indicator", "Group", "State", "Subgroup", "Phase", "Time Period Label",
-                      "Confidence Interval", "Quartile Range")
-    datetime_columns = ("Time Period Start Date", "Time Period End Date")
-    for col in string_columns:
-        df[col] = df[col].astype("string")
-    for col in datetime_columns:
-        df[col] = pd.to_datetime(df[col])
+    date_pattern = r"(^\d{2}/\d{2}/\d{4}$)|(^-1$)"
+    for col in df:
+        if df[col].dtype == "object":
+            if match_series(date_pattern, df[col]):
+                df[col] = pd.to_datetime(df[col])
+            else:
+                df[col] = df[col].astype("string")
     return df
