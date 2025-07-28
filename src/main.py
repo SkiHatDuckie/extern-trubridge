@@ -32,6 +32,12 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     # df = cleaning.trim_extra_space(df)
     return df
 
+def anxiety_trends_special_clean(df: pd.DataFrame) -> pd.DataFrame:
+    print("anxiety_trends_special_clean: Dropping irrelevant data...")
+    df = cleaning.drop_rows_except("Symptoms of Anxiety Disorder", "Indicator", df)
+    # At this point, these columns are now redundant
+    return df.drop(columns=["Indicator"])
+
 CWD = os.getcwd()
 RAW_DATA_PATHS = (CWD + "/data/raw/Indicators_of_Anxiety_or_Depression_Based_on_Reported\
 _Frequency_of_Symptoms_During_Last_7_Days.csv",
@@ -53,10 +59,10 @@ if __name__ == "__main__":
     if args.clean:
         for idx, raw_path in enumerate(RAW_DATA_PATHS):
             dataframe = pd.read_csv(raw_path)
-            print_five_rows(dataframe)
+            # print_five_rows(dataframe)
             clean_dataframe = clean_dataset(dataframe)
-            print("DEBUG: AFTER CLEANING:")
-            print_five_rows(clean_dataframe)
+            if idx == 0:
+                clean_dataframe = anxiety_trends_special_clean(clean_dataframe)
 
             print("Saving data to", CLEAN_DATA_PATHS[idx], "\n")
             save_clean_dataframe(clean_dataframe, CLEAN_DATA_PATHS[idx])

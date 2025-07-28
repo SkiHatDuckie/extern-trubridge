@@ -22,6 +22,15 @@ def drop_duplicate_rows(df: pd.DataFrame) -> pd.DataFrame:
 #     """Removes unnecessary quotes from all cells, and then trims away excess whitespace."""
 #     pass
 
+def drop_rows_except(value, series_key: str, df: pd.DataFrame) -> pd.DataFrame:
+    """Precondition: Assumes `value` is the correct type for `df[series_key]`.
+
+    Drops all rows that do not match `value` in the series."""
+    try:
+        return df[df[series_key] == value]
+    except KeyError as ex:
+        raise KeyError("'series_key' does not exist.") from ex
+
 def match_series(pattern: str, series: pd.Series) -> bool:
     """Returns `True` if all entries in the `series` match the `pattern`, or are -1."""
     return series.str.match(pattern).all()
