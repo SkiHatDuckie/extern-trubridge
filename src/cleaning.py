@@ -18,10 +18,6 @@ def drop_duplicate_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Drops all duplicate rows from the dataframe."""
     return df.drop_duplicates()
 
-# def trim_extra_space(df: pd.DataFrame) -> pd.DataFrame:
-#     """Removes unnecessary quotes from all cells, and then trims away excess whitespace."""
-#     pass
-
 def drop_rows_except(value, series_key: str, df: pd.DataFrame) -> pd.DataFrame:
     """Precondition: Assumes `value` is the correct type for `df[series_key]`.
 
@@ -44,4 +40,11 @@ def validate_column_types(df: pd.DataFrame) -> pd.DataFrame:
                 df[col] = pd.to_datetime(df[col])
             else:
                 df[col] = df[col].astype("string")
+    return df
+
+def trim_excess_space(df: pd.DataFrame) -> pd.DataFrame:
+    """Removes unnecessary quotes and whitespace from all series of type string."""
+    for col in df:
+        if df[col].dtype == "string":
+            df[col] = df[col].str.strip()
     return df

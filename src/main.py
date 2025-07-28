@@ -28,8 +28,8 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     df = cleaning.drop_duplicate_rows(df)
     print("Correcting data types...")
     df = cleaning.validate_column_types(df)
-    # print("Trimming extra spaces and quotes...")
-    # df = cleaning.trim_extra_space(df)
+    print("Trimming excess spaces and quotes...")
+    df = cleaning.trim_excess_space(df)
     return df
 
 def anxiety_trends_special_clean(df: pd.DataFrame) -> pd.DataFrame:
