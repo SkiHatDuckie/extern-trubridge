@@ -1,11 +1,13 @@
 """src/main.py"""
 
 import argparse
+import inspect
 import os
 
 import pandas as pd
 
 import cleaning
+import util
 
 def init_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ExternProject",
@@ -24,28 +26,41 @@ def print_five_rows(df: pd.DataFrame) -> None:
 def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     print("Replacing N/A cells with np.nan...")
     df = cleaning.replace_na_with_nan(df)
+
     print("Correcting column data types...")
     df = cleaning.validate_column_types(df)
-    numeric_columns = df.select_dtypes(include=["number"]).columns
-    print("Filling", cleaning.count_missing_cells(df[numeric_columns]), "cells with mean...")
+
+    numeric_cols = df.select_dtypes(include=["number"]).columns
+    print(f"Filling {cleaning.count_missing_cells(df[numeric_cols])} cells with mean...")
     df = cleaning.replace_nan_with_mean(df)
-    print("Filling", cleaning.count_missing_cells(df), "cells with -1...")
+
+    print(f"Filling {cleaning.count_missing_cells(df)} cells with -1...")
     df = df.fillna("-1")
-    print("Dropping", cleaning.count_duplicate_rows(df), "duplicate rows...")
+
+    print(f"Dropping {cleaning.count_duplicate_rows(df)} duplicate rows...")
     df = df.drop_duplicates()
+
     print("Trimming excess spaces and quotes...")
     df = cleaning.trim_excess_space(df)
+
     return df
 
 def anxiety_trends_special_clean(df: pd.DataFrame) -> pd.DataFrame:
-    print("anxiety_trends_special_clean: Dropping irrelevant data...")
+    func_name = inspect.currentframe().f_code.co_name
+    print(f"{func_name}: Dropping irrelevant data...")
     df = cleaning.drop_rows_except("Symptoms of Anxiety Disorder", "Indicator", df)
     # At this point, these columns are now redundant
     return df.drop(columns=["Indicator"])
 
 def american_community_survey_special_clean(df: pd.DataFrame) -> pd.DataFrame:
+    func_name = inspect.currentframe().f_code.co_name
     print("american_community_survey_special_clean: Dropping divider rows...")
-    return df[~df["Label (Grouping)"].str.isupper()]
+    df = df[~df["Label (Grouping)"].str.isupper()]
+
+    percent_cols = util.get_percentage_columns(df)
+    invalid_percentage_cnt = cleaning.count_invalid_percentages(percent_cols)
+    print(f"{func_name}: Found {invalid_percentage_cnt} invalid percentage values.")
+    return df
 
 CWD = os.getcwd()
 RAW_DATA_PATHS = (CWD + "/data/raw/Indicators_of_Anxiety_or_Depression_Based_on_Reported\
@@ -75,7 +90,7 @@ if __name__ == "__main__":
             else:
                 clean_dataframe = american_community_survey_special_clean(clean_dataframe)
 
-            print("Saving data to", CLEAN_DATA_PATHS[idx], "\n")
+            print(f"Saving data to {CLEAN_DATA_PATHS[idx]}\n")
             save_clean_dataframe(clean_dataframe, CLEAN_DATA_PATHS[idx])
     else:
         pass  # Do data analysis here

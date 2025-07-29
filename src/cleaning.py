@@ -7,14 +7,25 @@ def count_missing_cells(df: pd.DataFrame) -> int:
     """Returns the number of cells with missing data."""
     return df.isnull().sum().sum()
 
-def replace_na_with_nan(df: pd.DataFrame) -> pd.DataFrame:
-    """Replaces other values indicating N/A (i.e. `(X)` and `*****`), with `np.nan`."""
-    not_applicable_pattern = r"(^\(X\)$)|(^\*{5}$)"
-    return df.replace(not_applicable_pattern, np.nan, regex=True)
-
 def count_duplicate_rows(df: pd.DataFrame) -> int:
     """Returns the number of rows that are the exact same as a previous one."""
     return df.duplicated().sum()
+
+def count_invalid_percentages(df: pd.DataFrame) -> int:
+    """Precondition: All columns in `df` hold values representing percentages.
+    
+    Returns the number of cells that are not in the valid range of 0-100%."""
+    cnt = 0
+    for col in df:
+        values = df[col].values
+        valid_range = values[(0 <= values) & (values <= 100)]
+        cnt += sum(df[col].isin(valid_range))
+    return cnt
+
+def replace_na_with_nan(df: pd.DataFrame) -> pd.DataFrame:
+    """Replaces other values indicating N/A (i.e. `(X)` and `*****`), with `np.nan`."""
+    not_applicable_pattern = r"(^\(X\)$)|(^\*{2,}$)|(^-$)"
+    return df.replace(not_applicable_pattern, np.nan, regex=True)
 
 def drop_rows_except(value, series_key: str, df: pd.DataFrame) -> pd.DataFrame:
     """Precondition: Assumes `value` is the correct type for `df[series_key]`.
