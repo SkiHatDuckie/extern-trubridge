@@ -23,7 +23,7 @@ def count_invalid_percentages(df: pd.DataFrame) -> int:
     return cnt
 
 def replace_na_with_nan(df: pd.DataFrame) -> pd.DataFrame:
-    """Replaces other values indicating N/A (i.e. `(X)` and `*****`), with `np.nan`."""
+    """Replaces other values indicating N/A (i.e. `(X)` and `*****`), with `numpy.nan`."""
     not_applicable_pattern = r"(^\(X\)$)|(^\*{2,}$)|(^-$)"
     return df.replace(not_applicable_pattern, np.nan, regex=True)
 
