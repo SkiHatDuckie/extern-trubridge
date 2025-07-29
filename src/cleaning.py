@@ -1,18 +1,16 @@
 """src/cleaning.py"""
 
+import numpy as np
 import pandas as pd
-
-NOT_APPLICABLE_PATTERN = r"(^\(X\)$)|(^\*{5}$)"
 
 def count_missing_cells(df: pd.DataFrame) -> int:
     """Returns the number of cells with missing data."""
-    na_count = sum(sum(df[col].astype(str).str.count(NOT_APPLICABLE_PATTERN)) for col in df)
-    return df.isnull().sum().sum() + na_count
+    return df.isnull().sum().sum()
 
-def fill_missing_cells(df: pd.DataFrame) -> pd.DataFrame:
-    """Fills all missing cells with '-1' to signify the absence."""
-    df = df.replace(NOT_APPLICABLE_PATTERN, "-1", regex=True)
-    return df.fillna("-1")
+def replace_na_with_nan(df: pd.DataFrame) -> pd.DataFrame:
+    """Replaces other values indicating N/A (i.e. `(X)` and `*****`), with `np.nan`."""
+    not_applicable_pattern = r"(^\(X\)$)|(^\*{5}$)"
+    return df.replace(not_applicable_pattern, np.nan, regex=True)
 
 def count_duplicate_rows(df: pd.DataFrame) -> int:
     """Returns the number of rows that are the exact same as a previous one."""
@@ -38,7 +36,7 @@ def validate_column_types(df: pd.DataFrame) -> pd.DataFrame:
     for col in df:
         if df[col].dtype == "object":
             if match_series(date_pattern, df[col]):
-                df[col] = pd.to_datetime(df[col], errors="coerce")
+                df[col] = pd.to_datetime(df[col], errors="ignore")
             elif match_series(float_pattern, df[col]):
                 df[col] = df[col].astype("string").str.replace(r"[,±%\"]", "", regex=True)
                 df[col] = df[col].astype("float64")
@@ -51,4 +49,14 @@ def trim_excess_space(df: pd.DataFrame) -> pd.DataFrame:
     for col in df:
         if df[col].dtype == "string":
             df[col] = df[col].str.strip()
+    return df
+
+def replace_nan_with_mean(df: pd.DataFrame) -> pd.DataFrame:
+    """Replaces all missing values with the mean value of the column,
+    for all numeric columns."""
+    for col in df:
+        if pd.api.types.is_numeric_dtype(df[col]):
+            values = df[col].values
+            mean = np.nanmean(values)
+            df[col] = np.where(np.isnan(values), mean, values)
     return df

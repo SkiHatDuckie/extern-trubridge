@@ -22,12 +22,17 @@ def print_five_rows(df: pd.DataFrame) -> None:
     print(df.info())
 
 def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    print("Replacing N/A cells with np.nan...")
+    df = cleaning.replace_na_with_nan(df)
+    print("Correcting column data types...")
+    df = cleaning.validate_column_types(df)
+    numeric_columns = df.select_dtypes(include=["number"]).columns
+    print("Filling", cleaning.count_missing_cells(df[numeric_columns]), "cells with mean...")
+    df = cleaning.replace_nan_with_mean(df)
     print("Filling", cleaning.count_missing_cells(df), "cells with -1...")
-    df = cleaning.fill_missing_cells(df)
+    df = df.fillna("-1")
     print("Dropping", cleaning.count_duplicate_rows(df), "duplicate rows...")
     df = df.drop_duplicates()
-    print("Correcting data types...")
-    df = cleaning.validate_column_types(df)
     print("Trimming excess spaces and quotes...")
     df = cleaning.trim_excess_space(df)
     return df
@@ -37,6 +42,10 @@ def anxiety_trends_special_clean(df: pd.DataFrame) -> pd.DataFrame:
     df = cleaning.drop_rows_except("Symptoms of Anxiety Disorder", "Indicator", df)
     # At this point, these columns are now redundant
     return df.drop(columns=["Indicator"])
+
+def american_community_survey_special_clean(df: pd.DataFrame) -> pd.DataFrame:
+    print("american_community_survey_special_clean: Dropping divider rows...")
+    return df[~df["Label (Grouping)"].str.isupper()]
 
 CWD = os.getcwd()
 RAW_DATA_PATHS = (CWD + "/data/raw/Indicators_of_Anxiety_or_Depression_Based_on_Reported\
@@ -63,6 +72,8 @@ if __name__ == "__main__":
             clean_dataframe = clean_dataset(dataframe)
             if idx == 0:
                 clean_dataframe = anxiety_trends_special_clean(clean_dataframe)
+            else:
+                clean_dataframe = american_community_survey_special_clean(clean_dataframe)
 
             print("Saving data to", CLEAN_DATA_PATHS[idx], "\n")
             save_clean_dataframe(clean_dataframe, CLEAN_DATA_PATHS[idx])
