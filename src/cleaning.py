@@ -18,10 +18,6 @@ def count_duplicate_rows(df: pd.DataFrame) -> int:
     """Returns the number of rows that are the exact same as a previous one."""
     return df.duplicated().sum()
 
-def drop_duplicate_rows(df: pd.DataFrame) -> pd.DataFrame:
-    """Drops all duplicate rows from the dataframe."""
-    return df.drop_duplicates()
-
 def drop_rows_except(value, series_key: str, df: pd.DataFrame) -> pd.DataFrame:
     """Precondition: Assumes `value` is the correct type for `df[series_key]`.
 

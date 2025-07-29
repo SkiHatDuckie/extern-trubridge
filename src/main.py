@@ -25,7 +25,7 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     print("Filling", cleaning.count_missing_cells(df), "cells with -1...")
     df = cleaning.fill_missing_cells(df)
     print("Dropping", cleaning.count_duplicate_rows(df), "duplicate rows...")
-    df = cleaning.drop_duplicate_rows(df)
+    df = df.drop_duplicates()
     print("Correcting data types...")
     df = cleaning.validate_column_types(df)
     print("Trimming excess spaces and quotes...")
