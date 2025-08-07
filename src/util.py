@@ -4,6 +4,6 @@ import re
 
 import pandas as pd
 
-def get_percentage_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Returns a `pandas.DataFrame` of only the columns that contain percentages."""
-    return df[[col for col in df if re.match(r"Percent$", col)]]
+def get_percent_columns(df: pd.DataFrame) -> list:
+    """Returns a list of only the columns that contain percentages."""
+    return [col for col in df if re.search(r"Percent$", col)]

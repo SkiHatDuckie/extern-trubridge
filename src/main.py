@@ -54,12 +54,15 @@ def anxiety_trends_special_clean(df: pd.DataFrame) -> pd.DataFrame:
 
 def american_community_survey_special_clean(df: pd.DataFrame) -> pd.DataFrame:
     func_name = inspect.currentframe().f_code.co_name
-    print("american_community_survey_special_clean: Dropping divider rows...")
+    print(f"{func_name}: Dropping divider rows...")
     df = df[~df["Label (Grouping)"].str.isupper()]
 
-    percent_cols = util.get_percentage_columns(df)
-    invalid_percentage_cnt = cleaning.count_invalid_percentages(percent_cols)
-    print(f"{func_name}: Found {invalid_percentage_cnt} invalid percentage values.")
+    percent_cols = util.get_percent_columns(df)
+    invalid_percentage_cnt = cleaning.count_invalid_percents(df[percent_cols])
+    replacement = 0.0
+    print(f"{func_name}: Replacing {invalid_percentage_cnt} invalid percentage values with \
+{replacement}%.")
+    df = cleaning.replace_invalid_percents(replacement, df)
     return df
 
 CWD = os.getcwd()
@@ -83,6 +86,7 @@ if __name__ == "__main__":
     if args.clean:
         for idx, raw_path in enumerate(RAW_DATA_PATHS):
             dataframe = pd.read_csv(raw_path)
+            print(f"Cleaning {raw_path}")
             # print_five_rows(dataframe)
             clean_dataframe = clean_dataset(dataframe)
             if idx == 0:

@@ -3,6 +3,8 @@
 import numpy as np
 import pandas as pd
 
+import util
+
 def count_missing_cells(df: pd.DataFrame) -> int:
     """Returns the number of cells with missing data."""
     return df.isnull().sum().sum()
@@ -11,7 +13,7 @@ def count_duplicate_rows(df: pd.DataFrame) -> int:
     """Returns the number of rows that are the exact same as a previous one."""
     return df.duplicated().sum()
 
-def count_invalid_percentages(df: pd.DataFrame) -> int:
+def count_invalid_percents(df: pd.DataFrame) -> int:
     """Precondition: All columns in `df` hold values representing percentages.
     
     Returns the number of cells that are not in the valid range of 0-100%."""
@@ -70,4 +72,14 @@ def replace_nan_with_mean(df: pd.DataFrame) -> pd.DataFrame:
             values = df[col].values
             mean = np.nanmean(values)
             df[col] = np.where(np.isnan(values), mean, values)
+    return df
+
+def replace_invalid_percents(val, df: pd.DataFrame) -> pd.DataFrame:
+    """Precondition: `val` is the same type used for representing ALL percent columns."""
+    percent_cols = util.get_percent_columns(df)
+    df = df.copy()  # Explicitly copy to make numpy happy.
+    for col in percent_cols:
+        values = df[col].values
+        valid_range = values[(0 <= values) & (values <= 100)]
+        df.loc[df[col].isin(valid_range), col] = val
     return df
