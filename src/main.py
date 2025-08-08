@@ -15,6 +15,9 @@ def init_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--clean",
                         action="store_true",
                         help="Download, clean and integrate the raw datasets before use.")
+    parser.add_argument("--describe",
+                        action="store_true",
+                        help="Display the summary tables for each dataset.")
     return parser
 
 def print_five_rows(df: pd.DataFrame) -> None:
@@ -84,7 +87,6 @@ if __name__ == "__main__":
         for idx, raw_path in enumerate(RAW_DATA_PATHS):
             dataframe = pd.read_csv(raw_path)
             print(f"Cleaning {raw_path}")
-            # print_five_rows(dataframe)
             clean_dataframe = clean_dataset(dataframe)
             if idx == 0:
                 clean_dataframe = anxiety_trends_special_clean(clean_dataframe)
@@ -93,5 +95,14 @@ if __name__ == "__main__":
 
             print(f"Saving data to {CLEAN_DATA_PATHS[idx]}\n")
             save_clean_dataframe(clean_dataframe, CLEAN_DATA_PATHS[idx])
-    else:
-        pass  # Do data analysis here
+    if args.describe:
+        try:
+            for idx, data_path in enumerate(CLEAN_DATA_PATHS):
+                dataframe = pd.read_csv(data_path)
+                print(f"{data_path}")
+                print(dataframe.describe(), "\n")
+        except FileNotFoundError as ex:
+            raise FileNotFoundError("Data must be cleaned first!") \
+                from ex.with_traceback(None)
+
+    # Do data analysis here
