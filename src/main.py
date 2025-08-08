@@ -24,9 +24,6 @@ def print_five_rows(df: pd.DataFrame) -> None:
     print(df.info())
 
 def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
-    print("Replacing N/A cells with np.nan...")
-    df = cleaning.replace_na_with_nan(df)
-
     print("Correcting column data types...")
     df = cleaning.validate_column_types(df)
 

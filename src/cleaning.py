@@ -5,6 +5,8 @@ import pandas as pd
 
 import util
 
+NOT_APPLICABLE_PATTERN = r"(^\(X\)$)|(^\*{2,}$)|(^-$)"
+
 def count_missing_cells(df: pd.DataFrame) -> int:
     """Returns the number of cells with missing data."""
     return df.isnull().sum().sum()
@@ -24,10 +26,9 @@ def count_invalid_percents(df: pd.DataFrame) -> int:
         cnt += sum(df[col].isin(valid_range))
     return cnt
 
-def replace_na_with_nan(df: pd.DataFrame) -> pd.DataFrame:
+def replace_na_with_nan(df: pd.DataFrame | pd.Series) -> pd.DataFrame:
     """Replaces other values indicating N/A (i.e. `(X)` and `*****`), with `numpy.nan`."""
-    not_applicable_pattern = r"(^\(X\)$)|(^\*{2,}$)|(^-$)"
-    return df.replace(not_applicable_pattern, np.nan, regex=True)
+    return df.replace(NOT_APPLICABLE_PATTERN, np.nan, regex=True)
 
 def drop_rows_except(value, series_key: str, df: pd.DataFrame) -> pd.DataFrame:
     """Precondition: Assumes `value` is the correct type for `df[series_key]`.
@@ -45,12 +46,16 @@ def match_series(pattern: str, series: pd.Series) -> bool:
 def validate_column_types(df: pd.DataFrame) -> pd.DataFrame:
     """Replaces each column with the expected type."""
     date_pattern = r"(^\d{2}\/\d{2}\/\d{4}$)|(^-1$)"
-    float_pattern = r"(^(?!\.{2,}\s)[0-9±%,.\"]+$)|(^-1$)"
+    float_pattern = r"(^(?!\.{2,}\s)[0-9±%,.\"]+$)|(^-1$)|" + NOT_APPLICABLE_PATTERN
     for col in df:
         if df[col].dtype == "object":
             if match_series(date_pattern, df[col]):
-                df[col] = pd.to_datetime(df[col], errors="ignore")
+                try:
+                    df[col] = pd.to_datetime(df[col])
+                except pd.errors.ParserError:
+                    continue
             elif match_series(float_pattern, df[col]):
+                df[col] = replace_na_with_nan(df[col])
                 df[col] = df[col].astype("string").str.replace(r"[,±%\"]", "", regex=True)
                 df[col] = df[col].astype("float64")
             else:
