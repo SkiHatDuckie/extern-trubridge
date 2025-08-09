@@ -83,7 +83,7 @@ def save_clean_dataframe(df: pd.DataFrame, dest_path: os.path) -> None:
     """Saves `df` as a .csv. Additionally saves the column datatypes in a
     .json file, as CSV files do not hold onto this information."""
     dest_folder = CWD + "/data/clean"
-    dtypes_path = dest_path[:-4] + ".dtypes"
+    dtypes_path = dest_path[:-4] + ".json"
     dtypes_df = df.dtypes.to_frame('dtypes').reset_index()
     dtypes_dict = dtypes_df.set_index('index')['dtypes'].astype(str).to_dict()
     if not os.path.exists(dest_folder):
@@ -91,6 +91,16 @@ def save_clean_dataframe(df: pd.DataFrame, dest_path: os.path) -> None:
     with open(dtypes_path, "w", encoding="utf-8") as f:
         json.dump(dtypes_dict, f)
     df.to_csv(dest_path)
+
+def read_csv_with_dtypes(src_path: str) -> pd.DataFrame:
+    """Reads a cleaned dataset at `src_path`, appending the correct data types for
+    each column. Fails if either cleaned .csv or .json is missing."""
+    dtypes_path = src_path[:-4] + ".json"
+    with open(dtypes_path, "r", encoding="utf-8") as f:
+        dtypes = json.load(f)
+        non_datetime_dtypes = util.filter_dict_by_value(dtypes, "datetime64[ns]")
+        datetime_cols = util.get_keys_with_value(dtypes, "datetime64[ns]")
+        return pd.read_csv(src_path, dtype=non_datetime_dtypes, parse_dates=datetime_cols)
 
 if __name__ == "__main__":
     args = init_argument_parser().parse_args()
@@ -109,7 +119,7 @@ if __name__ == "__main__":
     if args.report:
         try:
             for idx, data_path in enumerate(CLEAN_DATA_PATHS):
-                dataframe = pd.read_csv(data_path)
+                dataframe = read_csv_with_dtypes(data_path)
                 print(f"{data_path}")
                 report_data_quality(dataframe)
         except FileNotFoundError as ex:
