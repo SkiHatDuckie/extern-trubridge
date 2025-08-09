@@ -21,12 +21,6 @@ def init_argument_parser() -> argparse.ArgumentParser:
                         help="Display a quality report for each dataset.")
     return parser
 
-def print_five_rows(df: pd.DataFrame) -> None:
-    print("First 5 rows:")
-    print(df.head())
-    print("\nDataFrame information:")
-    print(df.info())
-
 def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     print("Correcting column data types...")
     df = cleaning.validate_column_types(df)
