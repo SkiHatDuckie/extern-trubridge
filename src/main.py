@@ -2,6 +2,7 @@
 
 import argparse
 import inspect
+import json
 import os
 
 import pandas as pd
@@ -15,9 +16,9 @@ def init_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--clean",
                         action="store_true",
                         help="Download, clean and integrate the raw datasets before use.")
-    parser.add_argument("--describe",
+    parser.add_argument("--report",
                         action="store_true",
-                        help="Display the summary tables for each dataset.")
+                        help="Display a quality report for each dataset.")
     return parser
 
 def print_five_rows(df: pd.DataFrame) -> None:
@@ -44,6 +45,16 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     df = cleaning.trim_excess_space(df)
 
     return df
+
+def report_data_quality(df: pd.DataFrame):
+    """Does a check of the `df` for any missing values, incorrect data types, and more."""
+    print("Quality Report")
+    print(f"Missing values: {cleaning.count_missing_cells(df)}")
+    print(f"Data Types:\n {df.dtypes}")
+    print(f"Duplicate Rows: {cleaning.count_duplicate_rows(df)}")
+    print(f"Summary Stats:\n {df.describe()}\n")
+    for col in df.select_dtypes(include=["string"]).columns:
+        print(f"Unique values in {col}:\n", df[col].unique(), "\n")
 
 def anxiety_trends_special_clean(df: pd.DataFrame) -> pd.DataFrame:
     func_name = inspect.currentframe().f_code.co_name
@@ -75,10 +86,16 @@ CLEAN_DATA_PATHS = (CWD + "/data/clean/anxiety_trends.csv",
                     CWD + "/data/clean/household.csv")
 
 def save_clean_dataframe(df: pd.DataFrame, dest_path: os.path) -> None:
-    """Saves `df` as a .csv."""
+    """Saves `df` as a .csv. Additionally saves the column datatypes in a
+    .json file, as CSV files do not hold onto this information."""
     dest_folder = CWD + "/data/clean"
+    dtypes_path = dest_path[:-4] + ".dtypes"
+    dtypes_df = df.dtypes.to_frame('dtypes').reset_index()
+    dtypes_dict = dtypes_df.set_index('index')['dtypes'].astype(str).to_dict()
     if not os.path.exists(dest_folder):
         os.mkdir(dest_folder)
+    with open(dtypes_path, "w", encoding="utf-8") as f:
+        json.dump(dtypes_dict, f)
     df.to_csv(dest_path)
 
 if __name__ == "__main__":
@@ -92,15 +109,15 @@ if __name__ == "__main__":
                 clean_dataframe = anxiety_trends_special_clean(clean_dataframe)
             else:
                 clean_dataframe = american_community_survey_special_clean(clean_dataframe)
-
-            print(f"Saving data to {CLEAN_DATA_PATHS[idx]}\n")
+            print(f"Saving data to {CLEAN_DATA_PATHS[idx]}")
+            print(f"Saving datatypes to {CLEAN_DATA_PATHS[idx][:-4]}.json\n")
             save_clean_dataframe(clean_dataframe, CLEAN_DATA_PATHS[idx])
-    if args.describe:
+    if args.report:
         try:
             for idx, data_path in enumerate(CLEAN_DATA_PATHS):
                 dataframe = pd.read_csv(data_path)
                 print(f"{data_path}")
-                print(dataframe.describe(), "\n")
+                report_data_quality(dataframe)
         except FileNotFoundError as ex:
             raise FileNotFoundError("Data must be cleaned first!") \
                 from ex.with_traceback(None)

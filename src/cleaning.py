@@ -45,7 +45,7 @@ def match_series(pattern: str, series: pd.Series) -> bool:
 
 def validate_column_types(df: pd.DataFrame) -> pd.DataFrame:
     """Replaces each column with the expected type."""
-    date_pattern = r"(^\d{2}\/\d{2}\/\d{4}$)|(^-1$)"
+    date_pattern = r"(^\d{2}\/\d{2}\/\d{4}$)|(^-1$)|" + NOT_APPLICABLE_PATTERN
     float_pattern = r"(^(?!\.{2,}\s)[0-9±%,.\"]+$)|(^-1$)|" + NOT_APPLICABLE_PATTERN
     for col in df:
         if df[col].dtype == "object":
