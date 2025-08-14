@@ -7,6 +7,7 @@ import os
 
 import pandas as pd
 
+import analysis
 import cleaning
 import util
 
@@ -130,10 +131,9 @@ def run_quality_report():
 def run_data_analysis():
     """Precondition: Cleaned datasets have already been created."""
     try:
-        for data_path in CLEAN_DATA_PATHS:
-            dataframe = read_csv_with_dtypes(data_path)
-            print(f"{data_path}")
-            # TODO
+        anxiety_df, demographics_df, household_df = \
+            [read_csv_with_dtypes(data_path) for data_path in CLEAN_DATA_PATHS]
+        
     except FileNotFoundError as ex:
         raise FileNotFoundError("Data must be cleaned first!") \
             from ex.with_traceback(None)
