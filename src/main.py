@@ -102,28 +102,46 @@ def read_csv_with_dtypes(src_path: str) -> pd.DataFrame:
         datetime_cols = util.get_keys_with_value(dtypes, "datetime64[ns]")
         return pd.read_csv(src_path, dtype=non_datetime_dtypes, parse_dates=datetime_cols)
 
+def run_cleaning_process():
+    """Postcondition: Datasets will now have a cleaned counterpart in `data/clean`."""
+    for idx, raw_path in enumerate(RAW_DATA_PATHS):
+        dataframe = pd.read_csv(raw_path)
+        print(f"Cleaning {raw_path}")
+        clean_dataframe = clean_dataset(dataframe)
+        if idx == 0:
+            clean_dataframe = anxiety_trends_special_clean(clean_dataframe)
+        else:
+            clean_dataframe = american_community_survey_special_clean(clean_dataframe)
+        print(f"Saving data to {CLEAN_DATA_PATHS[idx]}")
+        print(f"Saving datatypes to {CLEAN_DATA_PATHS[idx][:-4]}.json\n")
+        save_clean_dataframe(clean_dataframe, CLEAN_DATA_PATHS[idx])
+
+def run_quality_report():
+    """Precondition: Cleaned datasets have already been created."""
+    try:
+        for data_path in CLEAN_DATA_PATHS:
+            dataframe = read_csv_with_dtypes(data_path)
+            print(f"{data_path}")
+            report_data_quality(dataframe)
+    except FileNotFoundError as ex:
+        raise FileNotFoundError("Data must be cleaned first!") \
+            from ex.with_traceback(None)
+
+def run_data_analysis():
+    """Precondition: Cleaned datasets have already been created."""
+    try:
+        for data_path in CLEAN_DATA_PATHS:
+            dataframe = read_csv_with_dtypes(data_path)
+            print(f"{data_path}")
+            # TODO
+    except FileNotFoundError as ex:
+        raise FileNotFoundError("Data must be cleaned first!") \
+            from ex.with_traceback(None)
+
 if __name__ == "__main__":
     args = init_argument_parser().parse_args()
     if args.clean:
-        for idx, raw_path in enumerate(RAW_DATA_PATHS):
-            dataframe = pd.read_csv(raw_path)
-            print(f"Cleaning {raw_path}")
-            clean_dataframe = clean_dataset(dataframe)
-            if idx == 0:
-                clean_dataframe = anxiety_trends_special_clean(clean_dataframe)
-            else:
-                clean_dataframe = american_community_survey_special_clean(clean_dataframe)
-            print(f"Saving data to {CLEAN_DATA_PATHS[idx]}")
-            print(f"Saving datatypes to {CLEAN_DATA_PATHS[idx][:-4]}.json\n")
-            save_clean_dataframe(clean_dataframe, CLEAN_DATA_PATHS[idx])
+        run_cleaning_process()
     if args.report:
-        try:
-            for idx, data_path in enumerate(CLEAN_DATA_PATHS):
-                dataframe = read_csv_with_dtypes(data_path)
-                print(f"{data_path}")
-                report_data_quality(dataframe)
-        except FileNotFoundError as ex:
-            raise FileNotFoundError("Data must be cleaned first!") \
-                from ex.with_traceback(None)
-
-    # Do data analysis here
+        run_quality_report()
+    run_data_analysis()
