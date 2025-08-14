@@ -91,7 +91,7 @@ def save_clean_dataframe(df: pd.DataFrame, dest_path: os.path) -> None:
         os.mkdir(dest_folder)
     with open(dtypes_path, "w", encoding="utf-8") as f:
         json.dump(dtypes_dict, f)
-    df.to_csv(dest_path)
+    df.to_csv(dest_path, index=False)
 
 def read_csv_with_dtypes(src_path: str) -> pd.DataFrame:
     """Reads a cleaned dataset at `src_path`, appending the correct data types for
