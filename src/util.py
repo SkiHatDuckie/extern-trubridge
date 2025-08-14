@@ -15,3 +15,7 @@ def filter_dict_by_value(d: dict, val) -> dict:
 def get_keys_with_value(d: dict, val) -> list:
     """Returns a list of keys that include `val`."""
     return [k for k, v in d.items() if val == v]
+
+def print_with_indentation(df: pd.DataFrame, num_tabs: int=1):
+    """Prepends `num_tabs` tabs to the end of each line."""
+    print("\n".join(["\t" * num_tabs + line for line in str(df).split("\n")]))

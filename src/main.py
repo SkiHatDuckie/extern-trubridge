@@ -133,7 +133,7 @@ def run_data_analysis():
     try:
         anxiety_df, demographics_df, household_df = \
             [read_csv_with_dtypes(data_path) for data_path in CLEAN_DATA_PATHS]
-        
+        analysis.describe_anxiety_trends(anxiety_df)
     except FileNotFoundError as ex:
         raise FileNotFoundError("Data must be cleaned first!") \
             from ex.with_traceback(None)
