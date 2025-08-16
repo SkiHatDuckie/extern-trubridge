@@ -55,6 +55,9 @@ def anxiety_trends_special_clean(df: pd.DataFrame) -> pd.DataFrame:
     func_name = inspect.currentframe().f_code.co_name
     print(f"{func_name}: Dropping irrelevant data...")
     df = cleaning.drop_rows_except("Symptoms of Anxiety Disorder", "Indicator", df)
+
+    print(f"{func_name}: Dropping rows where Phase == -1...")
+    df = df.loc[df["Phase"] != "-1"]
     # At this point, these columns are now redundant
     return df.drop(columns=["Indicator"])
 
@@ -134,6 +137,7 @@ def run_data_analysis():
         anxiety_df, demographics_df, household_df = \
             [read_csv_with_dtypes(data_path) for data_path in CLEAN_DATA_PATHS]
         analysis.describe_anxiety_trends(anxiety_df)
+        analysis.graph_anxiety_trends(anxiety_df, "By Age")
     except FileNotFoundError as ex:
         raise FileNotFoundError("Data must be cleaned first!") \
             from ex.with_traceback(None)
