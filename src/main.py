@@ -5,6 +5,7 @@ import inspect
 import json
 import os
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
 import analysis
@@ -138,6 +139,7 @@ def run_data_analysis():
             [read_csv_with_dtypes(data_path) for data_path in CLEAN_DATA_PATHS]
         analysis.describe_anxiety_trends(anxiety_df)
         analysis.graph_anxiety_trends(anxiety_df, "By Age")
+        plt.show()
     except FileNotFoundError as ex:
         raise FileNotFoundError("Data must be cleaned first!") \
             from ex.with_traceback(None)
