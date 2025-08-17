@@ -19,3 +19,9 @@ def get_keys_with_value(d: dict, val) -> list:
 def print_with_indentation(df: pd.DataFrame, num_tabs: int=1):
     """Prepends `num_tabs` tabs to the end of each line."""
     print("\n".join(["\t" * num_tabs + line for line in str(df).split("\n")]))
+
+def construct_file_name(name: str, prefix: str=None) -> str:
+    """Formats a string to represent a file name."""
+    pattern = re.compile("[ /]")
+    name = pattern.sub("_", name.lower())
+    return prefix + name

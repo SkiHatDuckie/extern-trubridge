@@ -5,7 +5,8 @@ import inspect
 import json
 import os
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import pandas as pd
 
 import analysis
@@ -84,9 +85,16 @@ CLEAN_DATA_PATHS = (CWD + "/data/clean/anxiety_trends.csv",
                     CWD + "/data/clean/demographics.csv",
                     CWD + "/data/clean/household.csv")
 
-def save_clean_dataframe(df: pd.DataFrame, dest_path: os.path) -> None:
-    """Saves `df` as a .csv. Additionally saves the column datatypes in a
-    .json file, as CSV files do not hold onto this information."""
+def save_graph(fig: Figure, name: str):
+    """Saves `fig` as a PNG file."""
+    dest_folder = CWD + "/data/graphs/"
+    if not os.path.exists(dest_folder):
+        os.mkdir(dest_folder)
+    fig.savefig(dest_folder + name)
+
+def save_clean_dataframe(df: pd.DataFrame, dest_path: os.path):
+    """Saves `df` as a CSV. Additionally saves the column datatypes in a
+    JSONfile, as CSV files do not hold onto this information."""
     dest_folder = CWD + "/data/clean"
     dtypes_path = dest_path[:-4] + ".json"
     dtypes_df = df.dtypes.to_frame('dtypes').reset_index()
@@ -97,9 +105,18 @@ def save_clean_dataframe(df: pd.DataFrame, dest_path: os.path) -> None:
         json.dump(dtypes_dict, f)
     df.to_csv(dest_path, index=False)
 
+def analyze_anxiety_trends(df: pd.DataFrame):
+    groups = df["Group"].unique()
+    groups = filter(lambda g: g != "By State", groups)
+    for group in groups:
+        analysis.describe_anxiety_trends(df, group)
+        fig = analysis.graph_anxiety_trends(df, group)
+        file_name = util.construct_file_name(group, prefix="anxiety_trends_")
+        save_graph(fig, file_name)
+
 def read_csv_with_dtypes(src_path: str) -> pd.DataFrame:
     """Reads a cleaned dataset at `src_path`, appending the correct data types for
-    each column. Fails if either cleaned .csv or .json is missing."""
+    each column. Fails if either cleaned CSV or JSON is missing."""
     dtypes_path = src_path[:-4] + ".json"
     with open(dtypes_path, "r", encoding="utf-8") as f:
         dtypes = json.load(f)
@@ -137,9 +154,7 @@ def run_data_analysis():
     try:
         anxiety_df, demographics_df, household_df = \
             [read_csv_with_dtypes(data_path) for data_path in CLEAN_DATA_PATHS]
-        analysis.describe_anxiety_trends(anxiety_df)
-        analysis.graph_anxiety_trends(anxiety_df, "By Age")
-        plt.show()
+        analyze_anxiety_trends(anxiety_df)
     except FileNotFoundError as ex:
         raise FileNotFoundError("Data must be cleaned first!") \
             from ex.with_traceback(None)
