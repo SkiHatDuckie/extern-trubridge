@@ -28,9 +28,12 @@ def graph_anxiety_trends(df: pd.DataFrame, group: str) -> Figure:
         subgroup_df = df.loc[df["Subgroup"] == subgroup]
         subgroup_df = subgroup_df.set_index("Time Period Start Date")
         ax.plot(subgroup_df.index, subgroup_df["Value"])
+        ax.fill_between(subgroup_df.index, subgroup_df["Low CI"], subgroup_df["High CI"],
+                        alpha=0.15)
 
     ax.legend(subgroups)
     plt.title(group, fontsize=20)
     plt.xlabel("Time Period Start Date", fontsize=15)
     plt.ylabel("Value", fontsize=15)
+    ax.set_ylim(ymin=0)
     return fig
