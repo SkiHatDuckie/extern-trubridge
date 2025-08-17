@@ -165,4 +165,5 @@ if __name__ == "__main__":
         run_cleaning_process()
     if args.report:
         run_quality_report()
-    run_data_analysis()
+    if not args.clean and not args.report:
+        run_data_analysis()
